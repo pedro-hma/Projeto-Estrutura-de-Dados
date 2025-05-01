@@ -2,6 +2,9 @@
 #include "livro.h"
 #include "usuario.h"
 #include "emprestimo.h"
+#include "emprestimo.c"
+#include "livro.c"
+#include "usuario.c"
 
 int main() {
     int opcao;
