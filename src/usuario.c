@@ -1,4 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "usuario.h"
+#include "tabelahash.h"
+#include "tabelahash.c"
+
 void cadastrarUsuario() {
     void cadastrarUsuario(UsuarioHash* tabela) {
         int id;
