@@ -1,7 +1,7 @@
 #include <stdio.h>
-//#include "livro.h"
-//#include "usuario.h"
-//#include "emprestimo.h"
+#include "livro.h"
+#include "usuario.h"
+#include "emprestimo.h"
 
 int main() {
     int opcao;
