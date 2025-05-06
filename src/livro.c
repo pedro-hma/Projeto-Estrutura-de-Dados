@@ -3,100 +3,86 @@
 #include <string.h>
 #include "livro.h"
 
-#define TAM 100
-Livro* tabelaLivros[TAM];
-
-int hash(const char* chave) {
+int hashLivro(const char* isbn) {
     int soma = 0;
-    for (int i = 0; chave[i] != '\0'; i++)
-        soma += chave[i];
-    return soma % TAM;
+    for (int i = 0; isbn[i] != '\0'; i++) soma += isbn[i];
+    return soma % TAM_HASH_LIVRO;
 }
 
-Livro* buscarLivro(const char* isbn) {
-    int h = hash(isbn);
-    Livro* atual = tabelaLivros[h];
-    while (atual) {
-        if (strcmp(atual->isbn, isbn) == 0) return atual;
-        atual = atual->prox;
-    }
-    return NULL;
-}
-
-void cadastrarLivro() {
-    Livro* novo = malloc(sizeof(Livro));
-    printf("ISBN: "); fgets(novo->isbn, 20, stdin); strtok(novo->isbn, "\n");
-    printf("Título: "); fgets(novo->titulo, 100, stdin); strtok(novo->titulo, "\n");
-    printf("Autor: "); fgets(novo->autor, 100, stdin); strtok(novo->autor, "\n");
-    printf("Ano: "); scanf("%d", &novo->ano); getchar();
-    printf("Editora: "); fgets(novo->editora, 50, stdin); strtok(novo->editora, "\n");
-    printf("Cópias: "); scanf("%d", &novo->copias); getchar();
-
-    int h = hash(novo->isbn);
-    novo->prox = tabelaLivros[h];
-    tabelaLivros[h] = novo;
-
-    printf("Livro cadastrado com sucesso!\n");
-}
-
-void consultarLivro() {
-    char isbn[20];
-    printf("ISBN do livro: ");
-    fgets(isbn, 20, stdin); strtok(isbn, "\n");
-    Livro* l = buscarLivro(isbn);
-    if (l) {
-        printf("Título: %s, Autor: %s, Cópias: %d\n", l->titulo, l->autor, l->copias);
-    } else {
-        printf("Livro não encontrado.\n");
-    }
-}
-
-void carregarLivros() {
-    FILE* f = fopen("livros.txt", "r");
-    if (!f) return;
-    while (!feof(f)) {
-        Livro* l = malloc(sizeof(Livro));
-        if (fscanf(f, "%[^|]|%[^|]|%[^|]|%d|%[^|]|%d\n",
-            l->isbn, l->titulo, l->autor, &l->ano, l->editora, &l->copias) == 6) {
-            int h = hash(l->isbn);
-            l->prox = tabelaLivros[h];
-            tabelaLivros[h] = l;
-        } else {
-            free(l);
-        }
-    }
-    fclose(f);
-}
-
-void salvarLivros() {
-    FILE* f = fopen("livros.txt", "w");
-    for (int i = 0; i < TAM; i++) {
-        Livro* l = tabelaLivros[i];
-        while (l) {
-            fprintf(f, "%s|%s|%s|%d|%s|%d\n",
-                l->isbn, l->titulo, l->autor, l->ano, l->editora, l->copias);
-            l = l->prox;
-        }
-    }
-    fclose(f);
-}
 LivroHash* criarTabelaLivros() {
     LivroHash* tabela = malloc(sizeof(LivroHash));
-    if (!tabela) {
-        return NULL;
-    }
-    for (int i = 0; i < TAM_HASH_LIVRO; i++) {
+    for (int i = 0; i < TAM_HASH_LIVRO; i++)
         tabela->tabela[i] = NULL;
-    }
     return tabela;
 }
+
+void cadastrarLivro(LivroHash* tabela) {
+    Livro* l = malloc(sizeof(Livro));
+    printf("ISBN: ");
+    fgets(l->isbn, 20, stdin); l->isbn[strcspn(l->isbn, "\n")] = 0;
+    printf("Título: ");
+    fgets(l->titulo, 100, stdin); l->titulo[strcspn(l->titulo, "\n")] = 0;
+    printf("Autor: ");
+    fgets(l->autor, 100, stdin); l->autor[strcspn(l->autor, "\n")] = 0;
+    l->emprestado = 0;
+    l->prox = NULL;
+
+    int pos = hashLivro(l->isbn);
+    l->prox = tabela->tabela[pos];
+    tabela->tabela[pos] = l;
+    printf("Livro cadastrado!\n");
+}
+
+void consultarLivro(LivroHash* tabela) {
+    char isbn[20];
+    printf("ISBN: ");
+    fgets(isbn, 20, stdin); isbn[strcspn(isbn, "\n")] = 0;
+
+    int pos = hashLivro(isbn);
+    Livro* atual = tabela->tabela[pos];
+    while (atual && strcmp(atual->isbn, isbn) != 0)
+        atual = atual->prox;
+
+    if (atual)
+        printf("Título: %s | Autor: %s | %s\n", atual->titulo, atual->autor, atual->emprestado ? "Emprestado" : "Disponível");
+    else
+        printf("Livro não encontrado.\n");
+}
+
+void salvarLivros(LivroHash* tabela, const char* nomeArquivo) {
+    FILE* f = fopen(nomeArquivo, "w");
+    for (int i = 0; i < TAM_HASH_LIVRO; i++) {
+        Livro* atual = tabela->tabela[i];
+        while (atual) {
+            fprintf(f, "%s;%s;%s;%d\n", atual->isbn, atual->titulo, atual->autor, atual->emprestado);
+            atual = atual->prox;
+        }
+    }
+    fclose(f);
+}
+
+void carregarLivros(LivroHash* tabela, const char* nomeArquivo) {
+    FILE* f = fopen(nomeArquivo, "r");
+    if (!f) return;
+    Livro l;
+    char linha[256];
+    while (fgets(linha, sizeof(linha), f)) {
+        sscanf(linha, "%[^;];%[^;];%[^;];%d", l.isbn, l.titulo, l.autor, &l.emprestado);
+        Livro* novo = malloc(sizeof(Livro));
+        *novo = l;
+        novo->prox = tabela->tabela[hashLivro(l.isbn)];
+        tabela->tabela[hashLivro(l.isbn)] = novo;
+    }
+    fclose(f);
+}
+
 void liberarLivros(LivroHash* tabela) {
     for (int i = 0; i < TAM_HASH_LIVRO; i++) {
         Livro* atual = tabela->tabela[i];
         while (atual) {
-            Livro* temp = atual;
+            Livro* tmp = atual;
             atual = atual->prox;
-            free(temp);
+            free(tmp);
         }
     }
     free(tabela);
