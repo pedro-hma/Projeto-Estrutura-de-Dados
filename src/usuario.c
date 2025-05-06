@@ -2,72 +2,84 @@
 #include <stdlib.h>
 #include <string.h>
 #include "usuario.h"
-#include "tabelahash.h"
-#include "tabelahash.c"
-void cadastrarUsuario(UsuarioHash* tabela) {
-        int id;
-        char nome[100];
-    
-        printf("Digite o ID do usuário: ");
-        scanf("%d", &id);
-        getchar(); // Limpar buffer do teclado
-    
-        if (buscarUsuario(tabela, id)) {
-            printf("Usuário com esse ID já existe!\n");
-            return;
-        }
-    
-        printf("Digite o nome do usuário: ");
-        fgets(nome, sizeof(nome), stdin);
-        nome[strcspn(nome, "\n")] = '\0'; // Remover \n
-    
-        Usuario* novo = criarUsuario(id, nome);
-        inserirUsuario(tabela, novo);
-    
-        printf("Usuário cadastrado com sucesso!\n");
+
+int hashUsuario(int id) {
+    return id % TAM_HASH_USUARIO;
 }
+
+UsuarioHash* criarTabelaUsuarios() {
+    UsuarioHash* tabela = malloc(sizeof(UsuarioHash));
+    for (int i = 0; i < TAM_HASH_USUARIO; i++)
+        tabela->tabela[i] = NULL;
+    return tabela;
+}
+
+void cadastrarUsuario(UsuarioHash* tabela) {
+    Usuario* u = malloc(sizeof(Usuario));
+    printf("ID do usuário: ");
+    scanf("%d", &u->id);
+    getchar();
+    printf("Nome: ");
+    fgets(u->nome, 100, stdin);
+    u->nome[strcspn(u->nome, "\n")] = 0;
+    u->livrosEmprestados = 0;
+    u->prox = NULL;
+
+    int pos = hashUsuario(u->id);
+    u->prox = tabela->tabela[pos];
+    tabela->tabela[pos] = u;
+    printf("Usuário cadastrado!\n");
+}
+
 void consultarUsuario(UsuarioHash* tabela) {
     int id;
-    printf("Digite o ID do usuário: ");
+    printf("ID do usuário: ");
     scanf("%d", &id);
-    Usuario* usuario = buscarUsuario(tabela, id);
-    if (usuario) {
-        printf("Usuário encontrado:\n");
-        printf("ID: %d\n", usuario->id);
-            printf("Nome: %s\n", usuario->nome);
-        } else {
-            printf("Usuário não encontrado.\n");
-    }
+    int pos = hashUsuario(id);
+    Usuario* atual = tabela->tabela[pos];
+    while (atual != NULL && atual->id != id)
+        atual = atual->prox;
+    if (atual)
+        printf("Nome: %s | Livros emprestados: %d\n", atual->nome, atual->livrosEmprestados);
+    else
+        printf("Usuário não encontrado.\n");
 }
-void carregarUsuarios(UsuarioHash* tabela, const char* nomeArquivo) {
-    FILE* arq = fopen(nomeArquivo, "r");
-    if (!arq) {
-        return;  // Se o arquivo não existir, apenas retorna
-    }
 
-    int id;
-    char nome[100];
-    while (fscanf(arq, "%d;%[^\n]\n", &id, nome) != EOF) {
-        Usuario* u = criarUsuario(id, nome);
-        inserirUsuario(tabela, u);
-    }
-
-    fclose(arq);
-}
 void salvarUsuarios(UsuarioHash* tabela, const char* nomeArquivo) {
-    FILE* arq = fopen(nomeArquivo, "w");
-    if (!arq) {
-        perror("Erro ao abrir arquivo de usuários");
-        return;
-    }
-
+    FILE* f = fopen(nomeArquivo, "w");
     for (int i = 0; i < TAM_HASH_USUARIO; i++) {
         Usuario* atual = tabela->tabela[i];
         while (atual) {
-            fprintf(arq, "%d;%s\n", atual->id, atual->nome);
+            fprintf(f, "%d;%s;%d\n", atual->id, atual->nome, atual->livrosEmprestados);
             atual = atual->prox;
         }
     }
+    fclose(f);
+}
 
-    fclose(arq);
+void carregarUsuarios(UsuarioHash* tabela, const char* nomeArquivo) {
+    FILE* f = fopen(nomeArquivo, "r");
+    if (!f) return;
+    Usuario u;
+    char linha[200];
+    while (fgets(linha, sizeof(linha), f)) {
+        sscanf(linha, "%d;%[^;];%d", &u.id, u.nome, &u.livrosEmprestados);
+        Usuario* novo = malloc(sizeof(Usuario));
+        *novo = u;
+        novo->prox = tabela->tabela[hashUsuario(u.id)];
+        tabela->tabela[hashUsuario(u.id)] = novo;
+    }
+    fclose(f);
+}
+
+void liberarUsuarios(UsuarioHash* tabela) {
+    for (int i = 0; i < TAM_HASH_USUARIO; i++) {
+        Usuario* atual = tabela->tabela[i];
+        while (atual) {
+            Usuario* tmp = atual;
+            atual = atual->prox;
+            free(tmp);
+        }
+    }
+    free(tabela);
 }

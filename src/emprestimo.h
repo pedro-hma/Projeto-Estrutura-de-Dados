@@ -1,7 +1,10 @@
 #ifndef EMPRESTIMO_H
 #define EMPRESTIMO_H
-void realizarEmprestimo();
-void realizarDevolucao();
-void carregarDados();
-void salvarDados();
+
+#include "usuario.h"
+#include "livro.h"
+
+void cadastrarEmprestimo(UsuarioHash* usuarios, LivroHash* livros);
+void devolverLivro(UsuarioHash* usuarios, LivroHash* livros);
+
 #endif

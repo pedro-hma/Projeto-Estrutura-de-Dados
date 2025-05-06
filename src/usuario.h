@@ -6,6 +6,7 @@
 typedef struct Usuario {
     int id;
     char nome[100];
+    int livrosEmprestados;
     struct Usuario* prox;
 } Usuario;
 
@@ -13,15 +14,12 @@ typedef struct {
     Usuario* tabela[TAM_HASH_USUARIO];
 } UsuarioHash;
 
-// Prototótipos das funções
 UsuarioHash* criarTabelaUsuarios();
-Usuario* criarUsuario(int id, const char* nome);
-void inserirUsuario(UsuarioHash* tabela, Usuario* usuario);
-Usuario* buscarUsuario(UsuarioHash* tabela, int id);
-void salvarUsuarios(UsuarioHash* tabela, const char* nomeArquivo);
-void carregarUsuarios(UsuarioHash* tabela, const char* nomeArquivo);
+int hashUsuario(int id);
 void cadastrarUsuario(UsuarioHash* tabela);
 void consultarUsuario(UsuarioHash* tabela);
+void salvarUsuarios(UsuarioHash* tabela, const char* nomeArquivo);
+void carregarUsuarios(UsuarioHash* tabela, const char* nomeArquivo);
 void liberarUsuarios(UsuarioHash* tabela);
 
 #endif
