@@ -80,3 +80,13 @@ void salvarLivros() {
     }
     fclose(f);
 }
+LivroHash* criarTabelaLivros() {
+    LivroHash* tabela = malloc(sizeof(LivroHash));
+    if (!tabela) {
+        return NULL;
+    }
+    for (int i = 0; i < TAM_HASH_LIVRO; i++) {
+        tabela->tabela[i] = NULL;
+    }
+    return tabela;
+}

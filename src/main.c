@@ -1,39 +1,55 @@
 #include <stdio.h>
-#include "livro.h"
+#include <stdlib.h>
 #include "usuario.h"
-#include "emprestimo.h"
-#include "emprestimo.c"
-#include "livro.c"
-#include "usuario.c"
-
+#include "livro.h"
+#include "tabelahash.h"
 int main() {
+    UsuarioHash* tabelaUsuarios = criarTabelaUsuarios();
+    LivroHash* tabelaLivros = criarTabelaLivros();
+
+    carregarUsuarios(tabelaUsuarios, "dados/usuarios.txt");
+    carregarLivros(tabelaLivros, "dados/livros.txt");
+
     int opcao;
 
-    carregarDados(); // Carrega arquivos para memória
-
     do {
-        printf("\n===== Sistema de Biblioteca =====\n");
-        printf("1. Cadastrar Livro\n");
-        printf("2. Cadastrar Usuário\n");
-        printf("3. Realizar Empréstimo\n");
-        printf("4. Realizar Devolução\n");
-        printf("5. Consultar Livro\n");
-        printf("6. Consultar Usuário\n");
-        printf("0. Sair\n");
-        printf("Escolha: ");
+        printf("\n======= MENU BIBLIOTECA =======\n");
+        printf("1 - Cadastrar usuário\n");
+        printf("2 - Consultar usuário\n");
+        printf("3 - Cadastrar livro\n");
+        printf("4 - Consultar livro\n");
+        printf("0 - Sair\n");
+        printf("Escolha uma opção: ");
         scanf("%d", &opcao);
-        getchar();
+        getchar();  // Limpar buffer
 
-        switch(opcao) {
-            case 1: cadastrarLivro(); break;
-            case 2: cadastrarUsuario(); break;
-            case 3: realizarEmprestimo(); break;
-            case 4: realizarDevolucao(); break;
-            case 5: consultarLivro(); break;
-            case 6: consultarUsuario(); break;
+        switch (opcao) {
+            case 1:
+                cadastrarUsuario(tabelaUsuarios);
+                break;
+            case 2:
+                consultarUsuario(tabelaUsuarios);
+                break;
+            case 3:
+                cadastrarLivro(tabelaLivros);
+                break;
+            case 4:
+                consultarLivro(tabelaLivros);
+                break;
+            case 0:
+                printf("Encerrando o programa...\n");
+                break;
+            default:
+                printf("Opção inválida!\n");
         }
+
     } while (opcao != 0);
 
-    salvarDados(); // Salva alterações nos arquivos
+    salvarUsuarios(tabelaUsuarios, "dados/usuarios.txt");
+    salvarLivros(tabelaLivros, "dados/livros.txt");
+
+    liberarUsuarios(tabelaUsuarios);
+    liberarLivros(tabelaLivros);
+
     return 0;
 }
