@@ -1,26 +1,26 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "name": "Executar Biblioteca",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "${workspaceFolder}/bin/biblioteca",
-        "args": [],
-        "stopAtEntry": false,
-        "cwd": "${workspaceFolder}",
-        "environment": [],
-        "externalConsole": true,
-        "MIMode": "gdb",
-        "preLaunchTask": "compilar biblioteca",
-        "setupCommands": [
-          {
-            "description": "Habilitar formatação padrão para gdb",
-            "text": "-enable-pretty-printing",
-            "ignoreFailures": true
-          }
-        ]
-      }
-    ]
-  }
-  
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Executar main",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/main",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": true,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Habilitar formatação para gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build",
+      "miDebuggerPath": "/usr/bin/gdb"
+    }
+  ]
+}
