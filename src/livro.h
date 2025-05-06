@@ -8,6 +8,7 @@ typedef struct Livro {
     char titulo[100];
     char autor[100];
     int emprestado;
+    int disponivel;
     struct Livro* prox;
 } Livro;
 
@@ -16,6 +17,7 @@ typedef struct {
 } LivroHash;
 
 LivroHash* criarTabelaLivros();
+int livroDisponivel(Livro* livro);
 int hashLivro(const char* isbn);
 void cadastrarLivro(LivroHash* tabela);
 void consultarLivro(LivroHash* tabela);
