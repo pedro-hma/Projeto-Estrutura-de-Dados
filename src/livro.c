@@ -90,3 +90,14 @@ LivroHash* criarTabelaLivros() {
     }
     return tabela;
 }
+void liberarLivros(LivroHash* tabela) {
+    for (int i = 0; i < TAM_HASH_LIVRO; i++) {
+        Livro* atual = tabela->tabela[i];
+        while (atual) {
+            Livro* temp = atual;
+            atual = atual->prox;
+            free(temp);
+        }
+    }
+    free(tabela);
+}

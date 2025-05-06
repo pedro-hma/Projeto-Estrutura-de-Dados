@@ -22,4 +22,6 @@ void carregarLivros();
 void salvarLivros();
 Livro* buscarLivro(const char* isbn);
 LivroHash* criarTabelaLivros();
+void liberarLivros(LivroHash* tabela);
+
 #endif
