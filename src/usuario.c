@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "usuario.h"
+# include "tabelahash.h"
 
 int hashUsuario(int id) {
     return id % TAM_HASH_USUARIO;

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "livro.h"
+#include "tabelahash.h"
 
 int hashLivro(const char* isbn) {
     int soma = 0;
