@@ -15,4 +15,3 @@ int hashLivro(const char* isbn) {
 int hashUsuario(int id) {
     return id % TAM_HASH_USUARIO;
 }
-
