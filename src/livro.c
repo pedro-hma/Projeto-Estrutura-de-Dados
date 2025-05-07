@@ -2,54 +2,94 @@
 #include <stdlib.h>
 #include <string.h>
 #include "livro.h"
-#include "tabelahash.h"
 
-void cadastrarLivro(Livro* tabela[], Livro novo) {
-    int index = hashLivro(novo.isbn);
-    tabela[index] = (Livro*) malloc(sizeof(Livro));
-    if (tabela[index] != NULL) {
-        *tabela[index] = novo;
+int hashString(const char* str) {
+    int hash = 0;
+    while (*str) hash = (hash * 31 + *str++) % TAMANHO_TABELA;
+    return hash;
+}
+
+LivroHash* criarTabelaLivros() {
+    LivroHash* hash = malloc(sizeof(LivroHash));
+    for (int i = 0; i < TAMANHO_TABELA; i++) hash->tabela[i] = NULL;
+    return hash;
+}
+
+void cadastrarLivro(LivroHash* tabela) {
+    Livro* novo = malloc(sizeof(Livro));
+    printf("Título: "); fgets(novo->titulo, sizeof(novo->titulo), stdin);
+    printf("Autor: "); fgets(novo->autor, sizeof(novo->autor), stdin);
+    printf("ISBN: "); fgets(novo->isbn, sizeof(novo->isbn), stdin);
+    novo->titulo[strcspn(novo->titulo, "\n")] = '\0';
+    novo->autor[strcspn(novo->autor, "\n")] = '\0';
+    novo->isbn[strcspn(novo->isbn, "\n")] = '\0';
+    novo->emprestado = 0;
+    novo->prox = NULL;
+
+    int indice = hashString(novo->isbn);
+    novo->prox = tabela->tabela[indice];
+    tabela->tabela[indice] = novo;
+
+    printf("Livro cadastrado com sucesso!\n");
+}
+
+Livro* consultarLivro(LivroHash* tabela, const char* isbn) {
+    int indice = hashString(isbn);
+    Livro* atual = tabela->tabela[indice];
+    while (atual) {
+        if (strcmp(atual->isbn, isbn) == 0) return atual;
+        atual = atual->prox;
     }
+    return NULL;
 }
 
-Livro* consultarLivro(Livro* tabela[], const char* isbn) {
-    int index = hashLivro(isbn);
-    return tabela[index];
-}
-
-void carregarLivros(Livro* tabela[], const char* nomeArquivo) {
-    FILE* f = fopen(nomeArquivo, "r");
-    if (!f) return;
-
-    Livro l;
-    while (fscanf(f, "%[^;];%[^;];%d\n", l.isbn, l.titulo, &l.disponivel) == 3) {
-        cadastrarLivro(tabela, l);
-    }
-
-    fclose(f);
-}
-
-void salvarLivros(Livro* tabela[], const char* nomeArquivo) {
+void salvarLivros(LivroHash* tabela, const char* nomeArquivo) {
     FILE* f = fopen(nomeArquivo, "w");
     if (!f) return;
-
-    for (int i = 0; i < 100; i++) {
-        if (tabela[i]) {
-            fprintf(f, "%s;%s;%d\n", tabela[i]->isbn, tabela[i]->titulo, tabela[i]->disponivel);
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        Livro* atual = tabela->tabela[i];
+        while (atual) {
+            fprintf(f, "%s|%s|%s|%d\n", atual->titulo, atual->autor, atual->isbn, atual->emprestado);
+            atual = atual->prox;
         }
     }
-
     fclose(f);
 }
 
-void liberarLivros(Livro* tabela[]) {
-    for (int i = 0; i < 100; i++) {
-        if (tabela[i]) {
-            free(tabela[i]);
+void carregarLivros(LivroHash* tabela, const char* nomeArquivo) {
+    FILE* f = fopen(nomeArquivo, "r");
+    if (!f) return;
+    char linha[300];
+    while (fgets(linha, sizeof(linha), f)) {
+        Livro* novo = malloc(sizeof(Livro));
+        sscanf(linha, "%99[^|]|%99[^|]|%19[^|]|%d", novo->titulo, novo->autor, novo->isbn, &novo->emprestado);
+        int indice = hashString(novo->isbn);
+        novo->prox = tabela->tabela[indice];
+        tabela->tabela[indice] = novo;
+    }
+    fclose(f);
+}
+
+void liberarLivros(LivroHash* tabela) {
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        Livro* atual = tabela->tabela[i];
+        while (atual) {
+            Livro* temp = atual;
+            atual = atual->prox;
+            free(temp);
         }
     }
+    free(tabela);
 }
-int livroDisponivel(Livro* livro) {
-    if (livro == NULL) return 0;  // Livro inexistente não está disponível
-    return livro->disponivel;
+
+void verificarDisponibilidadeLivro(LivroHash* tabela, const char* isbn) {
+    Livro* l = consultarLivro(tabela, isbn);
+    if (l) {
+        if (l->emprestado)
+            printf("Livro \"%s\" está emprestado.\n", l->titulo);
+        else
+            printf("Livro \"%s\" está disponível.\n", l->titulo);
+    } else {
+        printf("Livro não encontrado.\n");
+    }
 }
