@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "emprestimo.h"
+# include <livro.h>
+# include <usuario.h>
+
+void inicializarEmprestimos(Emprestimo** lista) {
+    *lista = NULL;
+}
 
 void cadastrarEmprestimo(LivroHash* livros, UsuarioHash* usuarios, Emprestimo** lista) {
     int id;

@@ -3,7 +3,9 @@
 #include "livro.h"
 #include "usuario.h"
 #include "emprestimo.h"
-
+#include "tabelahash.h"
+#include <stdio.h>
+# include <string.h>
 int main() {
     LivroHash* livros = criarTabelaLivros();
     UsuarioHash* usuarios = criarTabelaUsuarios();
